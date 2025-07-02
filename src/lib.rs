@@ -40,9 +40,16 @@ pub enum SoilType {
     Peat,
     Water,
     Universal,
-    SandTms1,
-    LoamySandTms1,
-    SiltLoamTms1,
+    SandTMS1,
+    LoamySandTMS1,
+    SiltLoamTMS1,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SoilTypeModel {
+    pub id: SoilType,
+    pub name: String,
+    pub machine_name: String,
 }
 
 impl SoilType {
@@ -64,9 +71,9 @@ impl SoilType {
             SoilType::Peat => (1.23e-07, -0.000_144_644, 0.202_927_9),
             SoilType::Water => (0.00e+00, 0.000_306_700, -0.134_927_9),
             SoilType::Universal => (-1.34e-08, 0.000_249_622, -0.157_888_8),
-            SoilType::SandTms1 => (0.00e+00, 0.000_260_000, -0.133_040_0),
-            SoilType::LoamySandTms1 => (0.00e+00, 0.000_330_000, -0.193_890_0),
-            SoilType::SiltLoamTms1 => (0.00e+00, 0.000_380_000, -0.294_270_0),
+            SoilType::SandTMS1 => (0.00e+00, 0.000_260_000, -0.133_040_0),
+            SoilType::LoamySandTMS1 => (0.00e+00, 0.000_330_000, -0.193_890_0),
+            SoilType::SiltLoamTMS1 => (0.00e+00, 0.000_380_000, -0.294_270_0),
         }
     }
 
@@ -83,9 +90,9 @@ impl SoilType {
             SoilType::Peat => "peat",
             SoilType::Water => "water",
             SoilType::Universal => "universal",
-            SoilType::SandTms1 => "sandtms1",
-            SoilType::LoamySandTms1 => "loamysandtms1",
-            SoilType::SiltLoamTms1 => "siltloamtms1",
+            SoilType::SandTMS1 => "sandtms1",
+            SoilType::LoamySandTMS1 => "loamysandtms1",
+            SoilType::SiltLoamTMS1 => "siltloamtms1",
         }
     }
 
@@ -100,30 +107,102 @@ impl SoilType {
         SoilType::Peat,
         SoilType::Water,
         SoilType::Universal,
-        SoilType::SandTms1,
-        SoilType::LoamySandTms1,
-        SoilType::SiltLoamTms1,
+        SoilType::SandTMS1,
+        SoilType::LoamySandTMS1,
+        SoilType::SiltLoamTMS1,
     ];
 }
 
-impl TryFrom<&str> for SoilType {
+impl From<SoilType> for SoilTypeModel {
+    fn from(soil: SoilType) -> Self {
+        match soil {
+            SoilType::Sand => SoilTypeModel {
+                id: SoilType::Sand,
+                name: "Sand".to_string(),
+                machine_name: "sand".to_string(),
+            },
+            SoilType::LoamySandA => SoilTypeModel {
+                id: SoilType::LoamySandA,
+                name: "Loamy Sand A".to_string(),
+                machine_name: "loamysanda".to_string(),
+            },
+            SoilType::LoamySandB => SoilTypeModel {
+                id: SoilType::LoamySandB,
+                name: "Loamy Sand B".to_string(),
+                machine_name: "loamysandb".to_string(),
+            },
+            SoilType::SandyLoamA => SoilTypeModel {
+                id: SoilType::SandyLoamA,
+                name: "Sandy Loam A".to_string(),
+                machine_name: "sandyloama".to_string(),
+            },
+            SoilType::SandyLoamB => SoilTypeModel {
+                id: SoilType::SandyLoamB,
+                name: "Sandy Loam B".to_string(),
+                machine_name: "sandyloamb".to_string(),
+            },
+            SoilType::Loam => SoilTypeModel {
+                id: SoilType::Loam,
+                name: "Loam".to_string(),
+                machine_name: "loam".to_string(),
+            },
+            SoilType::SiltLoam => SoilTypeModel {
+                id: SoilType::SiltLoam,
+                name: "Silt Loam".to_string(),
+                machine_name: "siltloam".to_string(),
+            },
+            SoilType::Peat => SoilTypeModel {
+                id: SoilType::Peat,
+                name: "Peat".to_string(),
+                machine_name: "peat".to_string(),
+            },
+            SoilType::Water => SoilTypeModel {
+                id: SoilType::Water,
+                name: "Water".to_string(),
+                machine_name: "water".to_string(),
+            },
+            SoilType::Universal => SoilTypeModel {
+                id: SoilType::Universal,
+                name: "Universal".to_string(),
+                machine_name: "universal".to_string(),
+            },
+            SoilType::SandTMS1 => SoilTypeModel {
+                id: SoilType::SandTMS1,
+                name: "Sand TMS1".to_string(),
+                machine_name: "sandtms1".to_string(),
+            },
+            SoilType::LoamySandTMS1 => SoilTypeModel {
+                id: SoilType::LoamySandTMS1,
+                name: "Loamy Sand TMS1".to_string(),
+                machine_name: "loamysandtms1".to_string(),
+            },
+            SoilType::SiltLoamTMS1 => SoilTypeModel {
+                id: SoilType::SiltLoamTMS1,
+                name: "Silt Loam TMS1".to_string(),
+                machine_name: "siltloamtms1".to_string(),
+            },
+        }
+    }
+}
+
+impl TryFrom<&str> for SoilTypeModel {
     type Error = String;
 
     fn try_from(s: &str) -> Result<Self, Self::Error> {
         match s.to_lowercase().as_str() {
-            "sand" => Ok(Self::Sand),
-            "loamysanda" => Ok(Self::LoamySandA),
-            "loamysandb" => Ok(Self::LoamySandB),
-            "sandyloama" => Ok(Self::SandyLoamA),
-            "sandyloamb" => Ok(Self::SandyLoamB),
-            "loam" => Ok(Self::Loam),
-            "siltloam" => Ok(Self::SiltLoam),
-            "peat" => Ok(Self::Peat),
-            "water" => Ok(Self::Water),
-            "universal" => Ok(Self::Universal),
-            "sandtms1" => Ok(Self::SandTms1),
-            "loamysandtms1" => Ok(Self::LoamySandTms1),
-            "siltloamtms1" => Ok(Self::SiltLoamTms1),
+            "sand" => Ok(Self::from(SoilType::Sand)),
+            "loamysanda" => Ok(Self::from(SoilType::LoamySandA)),
+            "loamysandb" => Ok(Self::from(SoilType::LoamySandB)),
+            "sandyloama" => Ok(Self::from(SoilType::SandyLoamA)),
+            "sandyloamb" => Ok(Self::from(SoilType::SandyLoamB)),
+            "loam" => Ok(Self::from(SoilType::Loam)),
+            "siltloam" => Ok(Self::from(SoilType::SiltLoam)),
+            "peat" => Ok(Self::from(SoilType::Peat)),
+            "water" => Ok(Self::from(SoilType::Water)),
+            "universal" => Ok(Self::from(SoilType::Universal)),
+            "sandtms1" => Ok(Self::from(SoilType::SandTMS1)),
+            "loamysandtms1" => Ok(Self::from(SoilType::LoamySandTMS1)),
+            "siltloamtms1" => Ok(Self::from(SoilType::SiltLoamTMS1)),
             _ => Err(format!("Unknown soil type: {s}")),
         }
     }

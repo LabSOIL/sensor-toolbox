@@ -28,9 +28,9 @@ fn get_expected_filename(soil_type: SoilType) -> String {
         SoilType::Peat => "peat",
         SoilType::Water => "water",
         SoilType::Universal => "universal",
-        SoilType::SandTms1 => "sand_TMS1",
-        SoilType::LoamySandTms1 => "loamy_sand_TMS1",
-        SoilType::SiltLoamTms1 => "silt_loam_TMS1",
+        SoilType::SandTMS1 => "sand_TMS1",
+        SoilType::LoamySandTMS1 => "loamy_sand_TMS1",
+        SoilType::SiltLoamTMS1 => "silt_loam_TMS1",
     };
     format!("tests/fixtures/data/output_{soil_name}.csv")
 }
@@ -280,17 +280,17 @@ fn test_universal() {
 
 #[test]
 fn test_sand_tms1() {
-    compare_soil_type(SoilType::SandTms1).expect("Sand TMS1 soil type test failed");
+    compare_soil_type(SoilType::SandTMS1).expect("Sand TMS1 soil type test failed");
 }
 
 #[test]
 fn test_loamy_sand_tms1() {
-    compare_soil_type(SoilType::LoamySandTms1).expect("Loamy Sand TMS1 soil type test failed");
+    compare_soil_type(SoilType::LoamySandTMS1).expect("Loamy Sand TMS1 soil type test failed");
 }
 
 #[test]
 fn test_silt_loam_tms1() {
-    compare_soil_type(SoilType::SiltLoamTms1).expect("Silt Loam TMS1 soil type test failed");
+    compare_soil_type(SoilType::SiltLoamTMS1).expect("Silt Loam TMS1 soil type test failed");
 }
 
 /// Comprehensive test that runs all soil types

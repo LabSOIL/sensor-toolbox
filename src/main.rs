@@ -6,7 +6,7 @@
  */
 
 use csv::WriterBuilder;
-use soil_sensor_toolbox::{process_file, SoilType};
+use soil_sensor_toolbox::{process_file, SoilType, SoilTypeModel};
 use std::env;
 use std::process;
 
@@ -21,13 +21,13 @@ fn print_usage() {
     println!("  soil-sensor-toolbox data.csv peat");
 }
 
-fn process_args(args: &[String]) -> Result<(String, SoilType), String> {
+fn process_args(args: &[String]) -> Result<(String, SoilTypeModel), String> {
     if args.len() != 3 {
         return Err("Invalid number of arguments".to_string());
     }
 
     let input_file = args[1].clone();
-    let soil_type = match args[2].as_str().try_into() {
+    let soil_type: SoilTypeModel = match args[2].as_str().try_into() {
         Ok(soil) => soil,
         Err(e) => {
             eprintln!("Error: {e}");
@@ -50,7 +50,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     let (input_file, soil_type) = process_args(&args)?;
-    let records = process_file(input_file, soil_type)?;
+    let records = process_file(input_file, soil_type.id)?;
     let mut wtr = WriterBuilder::new()
         .delimiter(b';')
         .from_path("output.csv")?;
