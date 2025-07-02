@@ -45,7 +45,7 @@ jobs:
         ls -la output_*.csv
 
     - name: Upload test data artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: test-data
         path: tests/fixtures/data/output_*.csv
@@ -58,7 +58,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Download test data artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: test-data
         path: tests/fixtures/data/
