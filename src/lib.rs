@@ -26,9 +26,9 @@
 use anyhow::Result;
 use chrono::NaiveDateTime;
 use csv::ReaderBuilder;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub enum SoilType {
     Sand,
     LoamySandA,
@@ -73,19 +73,19 @@ impl SoilType {
     #[must_use]
     pub fn as_str(&self) -> &'static str {
         match self {
-            SoilType::Sand => "Sand",
-            SoilType::LoamySandA => "Loamy Sand A",
-            SoilType::LoamySandB => "Loamy Sand B",
-            SoilType::SandyLoamA => "Sandy Loam A",
-            SoilType::SandyLoamB => "Sandy Loam B",
-            SoilType::Loam => "Loam",
-            SoilType::SiltLoam => "Silt Loam",
-            SoilType::Peat => "Peat",
-            SoilType::Water => "Water",
-            SoilType::Universal => "Universal",
-            SoilType::SandTms1 => "Sand TMS1",
-            SoilType::LoamySandTms1 => "Loamy Sand TMS1",
-            SoilType::SiltLoamTms1 => "Silt Loam TMS1",
+            SoilType::Sand => "sand",
+            SoilType::LoamySandA => "loamysanda",
+            SoilType::LoamySandB => "loamysandb",
+            SoilType::SandyLoamA => "sandyloama",
+            SoilType::SandyLoamB => "sandyloamb",
+            SoilType::Loam => "loam",
+            SoilType::SiltLoam => "siltloam",
+            SoilType::Peat => "peat",
+            SoilType::Water => "water",
+            SoilType::Universal => "universal",
+            SoilType::SandTms1 => "sandtms1",
+            SoilType::LoamySandTms1 => "loamysandtms1",
+            SoilType::SiltLoamTms1 => "siltloamtms1",
         }
     }
 
@@ -112,18 +112,18 @@ impl TryFrom<&str> for SoilType {
     fn try_from(s: &str) -> Result<Self, Self::Error> {
         match s.to_lowercase().as_str() {
             "sand" => Ok(Self::Sand),
-            "loamy sand a" | "loamysanda" => Ok(Self::LoamySandA),
-            "loamy sand b" | "loamysandb" => Ok(Self::LoamySandB),
-            "sandy loam a" | "sandyloama" => Ok(Self::SandyLoamA),
-            "sandy loam b" | "sandyloamb" => Ok(Self::SandyLoamB),
+            "loamysanda" => Ok(Self::LoamySandA),
+            "loamysandb" => Ok(Self::LoamySandB),
+            "sandyloama" => Ok(Self::SandyLoamA),
+            "sandyloamb" => Ok(Self::SandyLoamB),
             "loam" => Ok(Self::Loam),
-            "silt loam" | "siltloam" => Ok(Self::SiltLoam),
+            "siltloam" => Ok(Self::SiltLoam),
             "peat" => Ok(Self::Peat),
             "water" => Ok(Self::Water),
             "universal" => Ok(Self::Universal),
-            "sand tms1" | "sandtms1" => Ok(Self::SandTms1),
-            "loamy sand tms1" | "loamysandtms1" => Ok(Self::LoamySandTms1),
-            "silt loam tms1" | "siltloamtms1" => Ok(Self::SiltLoamTms1),
+            "sandtms1" => Ok(Self::SandTms1),
+            "loamysandtms1" => Ok(Self::LoamySandTms1),
+            "siltloamtms1" => Ok(Self::SiltLoamTms1),
             _ => Err(format!("Unknown soil type: {s}")),
         }
     }
