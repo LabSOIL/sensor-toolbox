@@ -4,6 +4,10 @@ version = "0.1.0"
 edition = "2021"
 authors = ["Evan Thomas <evan.thomas@epfl.ch>"]
 description = "A Rust library for processing soil moisture data from TMS4 sensors."
+license = "GPL-2.0-or-later"
+repository = "https://github.com/LabSOIL/sensor-toolbox"
+keywords = ["soil", "moisture", "sensor", "TMS4", "VWC"]
+categories = ["science", "command-line-utilities"]
 
 [lib]
 name = "soil_sensor_toolbox"
