@@ -230,7 +230,8 @@ const WCOR_T: f64 = 0.64108; // Temperature correction coefficient W
 ///
 /// # Returns
 /// Volumetric Water Content (VWC) as a fraction (0.0 to 1.0)
-fn mc_calc_vwc(raw_value: f64, temp_value: f64, soil: SoilType) -> f64 {
+#[must_use]
+pub fn mc_calc_vwc(raw_value: f64, temp_value: f64, soil: SoilType) -> f64 {
     let (a, b, c) = soil.coeffs();
 
     // Step 1: Initial VWC calculation
