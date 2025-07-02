@@ -1,6 +1,6 @@
 [package]
 name = "soil-sensor-toolbox"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 authors = ["Evan Thomas <evan.thomas@epfl.ch>"]
 description = "A Rust library for processing soil moisture data from TMS4 sensors."
