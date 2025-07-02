@@ -1,0 +1,100 @@
+name: Test
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  generate-test-data:
+    runs-on: ubuntu-latest
+    container: rocker/tidyverse:4.2.2
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install system dependencies
+      run: |
+        apt-get update
+        apt-get install -y --no-install-recommends \
+          libcurl4-openssl-dev \
+          libssl-dev \
+          libxml2-dev
+        rm -rf /var/lib/apt/lists/*
+
+    - name: Install remotes and myClim from GitHub
+      run: |
+        Rscript -e "install.packages('remotes', repos='https://cloud.r-project.org')"
+        Rscript -e "remotes::install_github('ibot-geoecology/myClim', dependencies = TRUE)"
+
+    - name: Generate test data with R script
+      working-directory: tests/fixtures
+      run: |
+        # Copy the R script to the data directory where it expects to run
+        cp docker/script_all_soils.R data/script_all_soils.R
+        cd data
+        
+        # Run the R script directly
+        Rscript script_all_soils.R
+        
+        # List generated files for verification
+        echo "Generated test data files:"
+        ls -la output_*.csv
+
+    - name: Upload test data artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-data
+        path: tests/fixtures/data/output_*.csv
+        retention-days: 1
+
+  test:
+    runs-on: ubuntu-22.04
+    needs: generate-test-data
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Download test data artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: test-data
+        path: tests/fixtures/data/
+
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        components: rustfmt, clippy
+
+    - name: Cache Rust dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+    - name: Verify test data
+      run: |
+        echo "Available test data files:"
+        ls -la tests/fixtures/data/output_*.csv || echo "No output files found"
+
+    - name: Check formatting
+      run: cargo fmt --all -- --check
+
+    - name: Run clippy
+      run: cargo clippy --all-targets --all-features -- -D warnings
+
+    - name: Build
+      run: cargo build --verbose
+
+    - name: Run tests
+      run: cargo test --verbose
+
+    - name: Run tests in release mode
+      run: cargo test --release --verbose

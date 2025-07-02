@@ -13,7 +13,7 @@ use std::process;
 fn print_usage() {
     println!("Usage: soil-sensor-toolbox <input_file> <soil_type>");
     println!("\nAvailable soil types:");
-    for soil in SoilType::ALL.iter() {
+    for soil in &SoilType::ALL {
         println!("  {}", soil.as_str());
     }
     println!("\nExample:");
@@ -30,7 +30,7 @@ fn process_args(args: &[String]) -> Result<(String, SoilType), String> {
     let soil_type = match args[2].as_str().try_into() {
         Ok(soil) => soil,
         Err(e) => {
-            eprintln!("Error: {}", e);
+            eprintln!("Error: {e}");
             println!();
             print_usage();
 
@@ -60,7 +60,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             dt.format("%Y.%m.%d %H:%M").to_string(),
             raw.to_string(),
             temp.to_string(),
-            format!("{:.6}", vwc),
+            format!("{vwc:.6}"),
         ])?;
     }
     wtr.flush()?;

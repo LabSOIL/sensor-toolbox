@@ -47,29 +47,30 @@ pub enum SoilType {
 
 impl SoilType {
     /// Soil type coefficients (a, b, c) for VWC = a·count² + b·count + c
-    /// Source: myClim R package (https://github.com/ibot-geoecology/myClim)
+    /// Source: myClim R package (<https://github.com/ibot-geoecology/myClim>)
     /// References:
     /// - Wild et al. (2019), 10.1016/j.agrformet.2018.12.018 (soil types 1-9)
     /// - Kopecký et al. (2021), 10.1016/j.scitotenv.2020.143785 (universal)
     /// - Vlček (2010) Kalibrace vlhkostního čidla TST1 (TMS1 variants)
-    fn coeffs(&self) -> (f64, f64, f64) {
+    fn coeffs(self) -> (f64, f64, f64) {
         match self {
-            SoilType::Sand => (-3.00e-09, 0.000161192, -0.1099565),
-            SoilType::LoamySandA => (-1.90e-08, 0.000265610, -0.1540893),
-            SoilType::LoamySandB => (-2.30e-08, 0.000282473, -0.1672112),
-            SoilType::SandyLoamA => (-3.80e-08, 0.000339449, -0.2149218),
-            SoilType::SandyLoamB => (-9.00e-10, 0.000261847, -0.1586183),
-            SoilType::Loam => (-5.10e-08, 0.000397984, -0.2910464),
-            SoilType::SiltLoam => (1.70e-08, 0.000118119, -0.1011685),
-            SoilType::Peat => (1.23e-07, -0.000144644, 0.2029279),
-            SoilType::Water => (0.00e+00, 0.000306700, -0.1349279),
-            SoilType::Universal => (-1.34e-08, 0.000249622, -0.1578888),
-            SoilType::SandTms1 => (0.00e+00, 0.000260000, -0.1330400),
-            SoilType::LoamySandTms1 => (0.00e+00, 0.000330000, -0.1938900),
-            SoilType::SiltLoamTms1 => (0.00e+00, 0.000380000, -0.2942700),
+            SoilType::Sand => (-3.00e-09, 0.000_161_192, -0.109_956_5),
+            SoilType::LoamySandA => (-1.90e-08, 0.000_265_610, -0.154_089_3),
+            SoilType::LoamySandB => (-2.30e-08, 0.000_282_473, -0.167_211_2),
+            SoilType::SandyLoamA => (-3.80e-08, 0.000_339_449, -0.214_921_8),
+            SoilType::SandyLoamB => (-9.00e-10, 0.000_261_847, -0.158_618_3),
+            SoilType::Loam => (-5.10e-08, 0.000_397_984, -0.291_046_4),
+            SoilType::SiltLoam => (1.70e-08, 0.000_118_119, -0.101_168_5),
+            SoilType::Peat => (1.23e-07, -0.000_144_644, 0.202_927_9),
+            SoilType::Water => (0.00e+00, 0.000_306_700, -0.134_927_9),
+            SoilType::Universal => (-1.34e-08, 0.000_249_622, -0.157_888_8),
+            SoilType::SandTms1 => (0.00e+00, 0.000_260_000, -0.133_040_0),
+            SoilType::LoamySandTms1 => (0.00e+00, 0.000_330_000, -0.193_890_0),
+            SoilType::SiltLoamTms1 => (0.00e+00, 0.000_380_000, -0.294_270_0),
         }
     }
 
+    #[must_use]
     pub fn as_str(&self) -> &'static str {
         match self {
             SoilType::Sand => "Sand",
@@ -123,7 +124,7 @@ impl TryFrom<&str> for SoilType {
             "sand tms1" | "sandtms1" => Ok(Self::SandTms1),
             "loamy sand tms1" | "loamysandtms1" => Ok(Self::LoamySandTms1),
             "silt loam tms1" | "siltloamtms1" => Ok(Self::SiltLoamTms1),
-            _ => Err(format!("Unknown soil type: {}", s)),
+            _ => Err(format!("Unknown soil type: {s}")),
         }
     }
 }
@@ -131,7 +132,7 @@ impl TryFrom<&str> for SoilType {
 // myClim temperature correction constants
 // Source: myClim R package constants
 const REF_T: f64 = 24.0; // Reference temperature (°C)
-const ACOR_T: f64 = 1.911327; // Temperature correction coefficient A
+const ACOR_T: f64 = 1.911_327; // Temperature correction coefficient A
 const WCOR_T: f64 = 0.64108; // Temperature correction coefficient W
 
 /// Calculate VWC using the myClim algorithm
@@ -189,6 +190,14 @@ struct RawRecord {
 }
 
 /// Read `<path>`, compute VWC for `soil`, return (datetime, raw, temp, vwc).
+///
+/// # Errors
+///
+/// This function returns an error if:
+/// - The file at `path` cannot be opened or read
+/// - CSV parsing fails due to invalid format
+/// - `DateTime` parsing fails (expects format: "%Y.%m.%d %H:%M")
+/// - Any field deserialization fails
 pub fn process_file(path: String, soil: SoilType) -> Result<Vec<(NaiveDateTime, f64, f64, f64)>> {
     let mut rdr = ReaderBuilder::new()
         .delimiter(b';')

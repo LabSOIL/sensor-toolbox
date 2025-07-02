@@ -4,6 +4,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 
 const VWC_TOLERANCE: f64 = 0.0025; // Allow small precision differences
+const FLOAT_TOLERANCE: f64 = f64::EPSILON; // Tolerance for float comparisons
 
 #[derive(Debug)]
 struct Mismatch {
@@ -31,15 +32,16 @@ fn get_expected_filename(soil_type: SoilType) -> String {
         SoilType::LoamySandTms1 => "loamy_sand_TMS1",
         SoilType::SiltLoamTms1 => "silt_loam_TMS1",
     };
-    format!("tests/fixtures/data/output_{}.csv", soil_name)
+    format!("tests/fixtures/data/output_{soil_name}.csv")
 }
 
+#[allow(clippy::too_many_lines)]
 fn compare_soil_type(soil_type: SoilType) -> Result<(), Box<dyn Error>> {
     let actual_data = process_file("tests/fixtures/data/data.csv".to_string(), soil_type)?;
     let expected_file = get_expected_filename(soil_type);
 
     let file = File::open(&expected_file)
-        .map_err(|e| format!("Failed to open expected file {}: {}", expected_file, e))?;
+        .map_err(|e| format!("Failed to open expected file {expected_file}: {e}"))?;
     let reader = BufReader::new(file);
     let expected_lines: Vec<String> = reader.lines().collect::<Result<Vec<_>, _>>()?;
 
@@ -49,8 +51,7 @@ fn compare_soil_type(soil_type: SoilType) -> Result<(), Box<dyn Error>> {
     assert_eq!(
         actual_data.len(),
         expected_data_lines.len(),
-        "Data length mismatch for {:?}: actual={}, expected={}",
-        soil_type,
+        "Data length mismatch for {soil_type:?}: actual={}, expected={}",
         actual_data.len(),
         expected_data_lines.len()
     );
@@ -83,8 +84,8 @@ fn compare_soil_type(soil_type: SoilType) -> Result<(), Box<dyn Error>> {
                 });
             }
 
-            // Check raw value
-            if actual.1 != expected_raw {
+            // Check raw value with small tolerance for float comparison
+            if (actual.1 - expected_raw).abs() > FLOAT_TOLERANCE {
                 mismatches.push(Mismatch {
                     index: i,
                     field: "raw".to_string(),
@@ -94,8 +95,8 @@ fn compare_soil_type(soil_type: SoilType) -> Result<(), Box<dyn Error>> {
                 });
             }
 
-            // Check temperature
-            if actual.2 != expected_temp {
+            // Check temperature with small tolerance for float comparison
+            if (actual.2 - expected_temp).abs() > FLOAT_TOLERANCE {
                 mismatches.push(Mismatch {
                     index: i,
                     field: "temperature".to_string(),
@@ -121,14 +122,12 @@ fn compare_soil_type(soil_type: SoilType) -> Result<(), Box<dyn Error>> {
 
     // Report statistics
     let mismatch_count = mismatches.len();
+    #[allow(clippy::cast_precision_loss)]
     let mismatch_percentage = (mismatch_count as f64 / total_records as f64) * 100.0;
 
-    println!("\n=== Comparison Results for {:?} ===", soil_type);
-    println!("Total records: {}", total_records);
-    println!(
-        "Mismatches: {} ({:.2}%)",
-        mismatch_count, mismatch_percentage
-    );
+    println!("\n=== Comparison Results for {soil_type:?} ===");
+    println!("Total records: {total_records}");
+    println!("Mismatches: {mismatch_count} ({mismatch_percentage:.2}%)");
 
     if mismatch_count > 0 {
         // Count mismatches by field
@@ -139,8 +138,9 @@ fn compare_soil_type(soil_type: SoilType) -> Result<(), Box<dyn Error>> {
 
         println!("\nMismatch breakdown:");
         for (field, count) in &field_counts {
-            let field_percentage = (*count as f64 / total_records as f64) * 100.0;
-            println!("  {}: {} ({:.2}%)", field, count, field_percentage);
+            #[allow(clippy::cast_precision_loss)]
+            let field_percentage = (f64::from(*count) / total_records as f64) * 100.0;
+            println!("  {field}: {count} ({field_percentage:.2}%)");
         }
 
         // Show first few mismatches
@@ -188,13 +188,14 @@ fn compare_soil_type(soil_type: SoilType) -> Result<(), Box<dyn Error>> {
             let max_diff = vwc_mismatches
                 .iter()
                 .fold(f64::NEG_INFINITY, |a, &b| a.max(b));
+            #[allow(clippy::cast_precision_loss)]
             let avg_diff = vwc_mismatches.iter().sum::<f64>() / vwc_mismatches.len() as f64;
 
             println!("\nVWC difference statistics:");
-            println!("  Min difference: {:.6}", min_diff);
-            println!("  Max difference: {:.6}", max_diff);
-            println!("  Average difference: {:.6}", avg_diff);
-            println!("  Tolerance: {:.6}", VWC_TOLERANCE);
+            println!("  Min difference: {min_diff:.6}");
+            println!("  Max difference: {max_diff:.6}");
+            println!("  Average difference: {avg_diff:.6}");
+            println!("  Tolerance: {VWC_TOLERANCE:.6}");
         }
     }
 
@@ -306,23 +307,23 @@ fn test_all_soil_types() {
 
     for soil_type in &soil_types {
         match compare_soil_type(*soil_type) {
-            Ok(_) => {
-                println!("✅ {:?} passed", soil_type);
+            Ok(()) => {
+                println!("✅ {soil_type:?} passed");
                 passed_count += 1;
             }
             Err(e) => {
-                println!("❌ {:?} failed: {}", soil_type, e);
+                println!("❌ {soil_type:?} failed: {e}");
                 failed_types.push(soil_type);
             }
         }
     }
 
     println!("\n=== Final Results ===");
-    println!("Passed: {}/{}", passed_count, soil_types.len());
+    println!("Passed: {passed_count}/{}", soil_types.len());
     println!("Failed: {}", failed_types.len());
 
     if !failed_types.is_empty() {
-        println!("Failed soil types: {:?}", failed_types);
+        println!("Failed soil types: {failed_types:?}");
         panic!("Some soil type tests failed");
     }
 
