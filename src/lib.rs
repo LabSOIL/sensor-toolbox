@@ -23,10 +23,10 @@
  * GNU General Public License for more details.
  */
 
+use anyhow::Result;
 use chrono::NaiveDateTime;
 use csv::ReaderBuilder;
 use serde::Deserialize;
-use std::error::Error;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum SoilType {
@@ -70,62 +70,61 @@ impl SoilType {
         }
     }
 
-    /// Get soil type from string name
-    pub fn from_str(s: &str) -> Result<Self, String> {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            SoilType::Sand => "Sand",
+            SoilType::LoamySandA => "Loamy Sand A",
+            SoilType::LoamySandB => "Loamy Sand B",
+            SoilType::SandyLoamA => "Sandy Loam A",
+            SoilType::SandyLoamB => "Sandy Loam B",
+            SoilType::Loam => "Loam",
+            SoilType::SiltLoam => "Silt Loam",
+            SoilType::Peat => "Peat",
+            SoilType::Water => "Water",
+            SoilType::Universal => "Universal",
+            SoilType::SandTms1 => "Sand TMS1",
+            SoilType::LoamySandTms1 => "Loamy Sand TMS1",
+            SoilType::SiltLoamTms1 => "Silt Loam TMS1",
+        }
+    }
+
+    pub const ALL: [SoilType; 13] = [
+        SoilType::Sand,
+        SoilType::LoamySandA,
+        SoilType::LoamySandB,
+        SoilType::SandyLoamA,
+        SoilType::SandyLoamB,
+        SoilType::Loam,
+        SoilType::SiltLoam,
+        SoilType::Peat,
+        SoilType::Water,
+        SoilType::Universal,
+        SoilType::SandTms1,
+        SoilType::LoamySandTms1,
+        SoilType::SiltLoamTms1,
+    ];
+}
+
+impl TryFrom<&str> for SoilType {
+    type Error = String;
+
+    fn try_from(s: &str) -> Result<Self, Self::Error> {
         match s.to_lowercase().as_str() {
-            "sand" => Ok(SoilType::Sand),
-            "loamy sand a" | "loamysanda" => Ok(SoilType::LoamySandA),
-            "loamy sand b" | "loamysandb" => Ok(SoilType::LoamySandB),
-            "sandy loam a" | "sandyloama" => Ok(SoilType::SandyLoamA),
-            "sandy loam b" | "sandyloamb" => Ok(SoilType::SandyLoamB),
-            "loam" => Ok(SoilType::Loam),
-            "silt loam" | "siltloam" => Ok(SoilType::SiltLoam),
-            "peat" => Ok(SoilType::Peat),
-            "water" => Ok(SoilType::Water),
-            "universal" => Ok(SoilType::Universal),
-            "sand tms1" | "sandtms1" => Ok(SoilType::SandTms1),
-            "loamy sand tms1" | "loamysandtms1" => Ok(SoilType::LoamySandTms1),
-            "silt loam tms1" | "siltloamtms1" => Ok(SoilType::SiltLoamTms1),
+            "sand" => Ok(Self::Sand),
+            "loamy sand a" | "loamysanda" => Ok(Self::LoamySandA),
+            "loamy sand b" | "loamysandb" => Ok(Self::LoamySandB),
+            "sandy loam a" | "sandyloama" => Ok(Self::SandyLoamA),
+            "sandy loam b" | "sandyloamb" => Ok(Self::SandyLoamB),
+            "loam" => Ok(Self::Loam),
+            "silt loam" | "siltloam" => Ok(Self::SiltLoam),
+            "peat" => Ok(Self::Peat),
+            "water" => Ok(Self::Water),
+            "universal" => Ok(Self::Universal),
+            "sand tms1" | "sandtms1" => Ok(Self::SandTms1),
+            "loamy sand tms1" | "loamysandtms1" => Ok(Self::LoamySandTms1),
+            "silt loam tms1" | "siltloamtms1" => Ok(Self::SiltLoamTms1),
             _ => Err(format!("Unknown soil type: {}", s)),
         }
-    }
-
-    /// Get string representation
-    pub fn to_str(&self) -> &'static str {
-        match self {
-            SoilType::Sand => "sand",
-            SoilType::LoamySandA => "loamy sand A",
-            SoilType::LoamySandB => "loamy sand B",
-            SoilType::SandyLoamA => "sandy loam A",
-            SoilType::SandyLoamB => "sandy loam B",
-            SoilType::Loam => "loam",
-            SoilType::SiltLoam => "silt loam",
-            SoilType::Peat => "peat",
-            SoilType::Water => "water",
-            SoilType::Universal => "universal",
-            SoilType::SandTms1 => "sand TMS1",
-            SoilType::LoamySandTms1 => "loamy sand TMS1",
-            SoilType::SiltLoamTms1 => "silt loam TMS1",
-        }
-    }
-
-    /// List all available soil types
-    pub fn all_types() -> Vec<SoilType> {
-        vec![
-            SoilType::Sand,
-            SoilType::LoamySandA,
-            SoilType::LoamySandB,
-            SoilType::SandyLoamA,
-            SoilType::SandyLoamB,
-            SoilType::Loam,
-            SoilType::SiltLoam,
-            SoilType::Peat,
-            SoilType::Water,
-            SoilType::Universal,
-            SoilType::SandTms1,
-            SoilType::LoamySandTms1,
-            SoilType::SiltLoamTms1,
-        ]
     }
 }
 
@@ -173,7 +172,7 @@ fn mc_calc_vwc(raw_value: f64, temp_value: f64, soil: SoilType) -> f64 {
     let vwc_cor = a * corrected_raw * corrected_raw + b * corrected_raw + c;
 
     // Step 4: Clamp result between 0 and 1 (pmin(pmax(vwc_cor, 0), 1))
-    vwc_cor.max(0.0).min(1.0)
+    vwc_cor.clamp(0.0, 1.0)
 }
 
 #[derive(Debug, Deserialize)]
@@ -190,10 +189,7 @@ struct RawRecord {
 }
 
 /// Read `<path>`, compute VWC for `soil`, return (datetime, raw, temp, vwc).
-pub fn process_file(
-    path: &str,
-    soil: SoilType,
-) -> Result<Vec<(NaiveDateTime, f64, f64, f64)>, Box<dyn Error>> {
+pub fn process_file(path: String, soil: SoilType) -> Result<Vec<(NaiveDateTime, f64, f64, f64)>> {
     let mut rdr = ReaderBuilder::new()
         .delimiter(b';')
         .has_headers(false)
