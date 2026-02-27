@@ -56,6 +56,9 @@ for (soil in available_soils) {
   safe_soil_name <- gsub("[^A-Za-z0-9]", "_", soil)
   output_file <- paste0("output_", safe_soil_name, ".csv")
   
+  # Ensure consistent datetime formatting (R drops 00:00:00 for midnight)
+  df$datetime <- format(df$datetime, "%Y-%m-%d %H:%M:%S")
+
   # write it back to host with proper formatting
   write.csv(df,
             file = output_file,
