@@ -12,7 +12,7 @@ env:
 jobs:
   generate-test-data:
     runs-on: ubuntu-latest
-    container: rocker/tidyverse:4.2.2
+    container: rocker/tidyverse:4.4
     steps:
     - uses: actions/checkout@v4
 
@@ -25,10 +25,9 @@ jobs:
           libxml2-dev
         rm -rf /var/lib/apt/lists/*
 
-    - name: Install remotes and myClim from GitHub
+    - name: Install myClim from CRAN
       run: |
-        Rscript -e "install.packages('remotes', repos='https://cloud.r-project.org')"
-        Rscript -e "remotes::install_github('ibot-geoecology/myClim', dependencies = TRUE)"
+        Rscript -e "install.packages('myClim', repos='https://cloud.r-project.org')"
 
     - name: Generate test data with R script
       working-directory: tests/fixtures
